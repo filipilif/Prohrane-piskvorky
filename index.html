@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+   <meta charset="UTF-8">
+   <meta name="author" content="Filip Vajdík">
+   <meta name="robots" content="index, follow">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="description" content="Zahrajte si tyto jedinečné pišvorky. Výsledky váš možná překvapí.">
+   <meta name="keywords" content="pišvorky, hra, prohrané, kvalita">
+
+   <title>Prohrané pišvorky pro všechny hráče</title>
+	<!--script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.min.js"></script-->
+	<script src="fabric.js"></script>
+   <!-- link rel="stylesheet" type="text/css" href="" -->
+</head>
+<body style="background-color: yellow;">
+   <div class="wrapper" style="margin: 100px;">
+		<h1> Prohrané piškvorky </h1>
+		
+		<!-- Policka jsou 100x100 plus 1px cary -->
+		<canvas id="game" width="302" height="201" style="border: 1px solid black;">
+		
+		</canvas>
+		<div id="zprava"></div>
+		<script>
+			// vyberu canvas
+			var canvas = new fabric.Canvas('game', {
+					backgroundColor: 'rgb(250, 250, 250)',
+					});
+			
+			
+			var player_options = {
+			  left: 15,
+			  top: 15,
+			  stroke: 'red',	
+			  fill: 'none',
+			  selectable: false,
+			  strokeWidth: 3,
+			  radius: 35,
+			};
+			
+			var player2_options = {
+			  left: 15,
+			  top: 15,
+			  stroke: 'blue',	
+			  fill: 'none',
+			  selectable: false,
+			  strokeWidth: 3,
+			  radius: 35,
+			};
+			
+			//var player = new fabric.Circle(options);
+			
+			// mrizka. 
+			var line_v1 = new fabric.Line([100, 0, 100, 200], {stroke: 'black', selectable: false});
+			canvas.add(line_v1);
+			var line_v2 = new fabric.Line([201, 0, 201, 200], {stroke: 'black', selectable: false});
+			canvas.add(line_v2);
+			var line_h1 = new fabric.Line([0, 100, 301, 100], {stroke: 'black', selectable: false});
+			canvas.add(line_h1);
+
+			// stav zabranych policek
+			var state = [
+			[0, 0, 0],
+			[0, 0, 0]
+			];
+			
+			// zacatek nahore vpravo. x doprava, y dolu. x1 y1 x2 y2 ctverec na klikani
+			var positions = [
+			[[0, 0], [101, 0], [202, 0]],
+			[[0, 101], [101, 101], [202, 101]]
+			];
+			
+			var pocet_tahu = 0;
+			// click events
+			canvas.on('mouse:down', function(options) {
+				// mouse coordinates
+				var pointer = canvas.getPointer(options.e);
+				var x = pointer.x;
+				var y = pointer.y;
+				
+				// policko
+				var row = 0;
+				var col = 0;
+				
+				// klik na ktere policko
+				if(y > 100) row = 2;
+				
+				if(y < 100) row = 1;
+				
+				if(x < 100) col = 1;
+				
+				if(x > 100 && x < 201) col = 2;
+				
+				if(x > 201) col=3;
+				
+				if(x && y) { // nebyla to cara
+					col--; // lepsi do pole
+					row--;
+					if(state[row][col] == 0) { // prazdne policko
+						state[row][col] = new fabric.Circle(player_options);
+						state[row][col].set('left', positions[row][col][0] + 15);
+						state[row][col].set('top', positions[row][col][1]+15);
+						canvas.add(state[row][col]);
+						
+						// protihrac
+						var row2;
+						if(row == 0) {row2= 1; }else {row2=0};
+						console.log('row je '+row);
+						console.log('row2 je '+ row2);
+						// pokud je misto ve stejnem radku lupnu to tam
+						if(state[row][0] == 0) {
+							
+							state[row][0] = new fabric.Circle(player2_options);
+							state[row][0].set('left', positions[row][0][0] + 15);
+							state[row][0].set('top', positions[row][0][1]+15);
+							canvas.add(state[row][0]);
+						} else if (state[row][1] == 0) {
+							state[row][1] = new fabric.Circle(player2_options);
+							state[row][1].set('left', positions[row][1][0] + 15);
+							state[row][1].set('top', positions[row][1][1]+15);
+							canvas.add(state[row][1]);
+						} else if (state[row][2] == 0) {
+							state[row][2] = new fabric.Circle(player2_options);
+							state[row][2].set('left', positions[row][2][0] + 15);
+							state[row][2].set('top', positions[row][2][1]+15);
+							canvas.add(state[row][2]);
+						}
+						// pokud neni misto dam to do vedlejsiho radku
+						else if(state[row2][0] == 0) {
+							state[row2][0] = new fabric.Circle(player2_options);
+							state[row2][0].set('left', positions[row2][0][0] + 15);
+							state[row2][0].set('top', positions[row2][0][1]+15);
+							canvas.add(state[row2][0]);
+						} else if (state[row2][1] == 0) {
+							state[row2][1] = new fabric.Circle(player2_options);
+							state[row2][1].set('left', positions[row2][1][0] + 15);
+							state[row2][1].set('top', positions[row2][1][1]+15);
+							canvas.add(state[row2][1]);
+						} else if (state[row2][2] == 0) {
+							state[row2][2] = new fabric.Circle(player2_options);
+							state[row2][2].set('left', positions[row2][2][0] + 15);
+							state[row2][2].set('top', positions[row2][2][1]+15);
+							canvas.add(state[row2][2]);
+						} 
+						// konec hry
+						pocet_tahu += 1;
+						if(pocet_tahu == 3) {
+							document.getElementById('zprava').innerHTML = '<h2> <b> === Remíza  / nikdo nevyhrál ===</b></h2>';
+						}
+						canvas.renderAll();
+					}
+				}
+				
+				//canvas.remove(player);
+			});
+
+			//canvas.add(player);
+		</script>
+		<div>
+		<dl>
+			<dt>
+			1. Úvod
+			</dt>
+			<dd>
+			Proharné piškvorky jsou hra pro dva hráče. Jedním z nich je ale počítač. Hráči dávají na hrací plochu kolečko své barvy.
+			</dd>
+			
+			
+			<dt>2. Hrací plánn</dt>
+			<dd>Deska má rozměry 2x3.</dd>
+			
+			<dt>3. Průběh hry</dt>
+			<dd>Jeden z hráčů používá červené a druhý modré kolečko. Hráči se střídají v tazích.</dd>
+			
+			<dt>4. Tah</dt>
+			<dd>Provést tah znamená umístit svoje kolečko do mřížky.</dd>
+			
+			<dt>5. Výhra</dt>
+			<dd>Vítězem hry se stává hráč, kterému se podaří ze svých koleček vytvořit tzv. "piškvorku" - tři kolečka ve stejné řádě nebo sloupci, nebo diagonálně.</dd>
+			
+			
+		</dl>
+		</div>
+   </div>
+</body>
+</html>
